@@ -25,10 +25,34 @@ export function usePhotoGalery(){
             quality:100            
             
         });
+
+
+
+        const savePicture = async (photo: CameraPhoto, fileName: string) => {
+            const base64Data = await base64FromPath(photo.webPath!);
+            await writeFile({
+              path: fileName,
+              data: base64Data,
+              directory: FilesystemDirectory.Data
+            });
+            return getPhotoFile(photo, fileName);
+          };
+          
+          const getPhotoFile = async (cameraPhoto: CameraPhoto, fileName: string): Promise<Photo> => {
+            return {              
+              filePath: fileName,              
+              webViewPath:cameraPhoto.webPath
+            };
+          };
+          
+
+/*
         const newPhotos = [{
             filePath: fileName,
             webViewPath: cameraPhoto.webPath
-        },...photos];
+        },...photos];*/
+        const savedFileImage = await savePicture(cameraPhoto, fileName);
+        const newPhotos = [savedFileImage, ...photos];
         setPhotos(newPhotos)
         
 
