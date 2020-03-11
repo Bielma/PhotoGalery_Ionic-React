@@ -5,18 +5,51 @@ import {isPlatform} from '@ionic/react';
 import {useStorage} from '@ionic/react-hooks/storage';
 import {CameraResultType, CameraSource, CameraPhoto, Capacitor, FilesystemDirectory} from '@capacitor/core';
 import { camera } from 'ionicons/icons';
+const PHOTO_STORAGE = "photos";
 
 
 export function usePhotoGalery(){
     
     const {getPhoto} = useCamera();
+
     const [photos, setPhotos] = useState<Photo[]>([]);
-    const fileName = new Date().getTime() + '.jpeg';    
     const {deleteFile, getUri, readFile, writeFile} = useFilesystem();
     const PHOTO_STORAGE = "Fotos";    
     const {get, set } = useStorage();
     
-        
+    useEffect (()=>{
+        const loadSaved = async() => {
+            const photoString = await get('photos');
+            const photo = (photoString ? JSON.parse(photoString) : []) as Photo[];
+            for (let photo of photos){
+                const file = await readFile({
+                    path: photo.filePath,
+                    directory: FilesystemDirectory.Data
+                });
+                photo.base64 = 'data:image/jpeg;base64,${file.data}';   
+            }
+            setPhotos(photos);
+        };
+        loadSaved();
+
+    }, [get, readFile]);
+
+
+    const deletePhoto = async (photo: Photo) => {
+        const newPhotos = photos.filter(p=> p.filePath !== photo.filePath);
+
+        set(PHOTO_STORAGE, JSON.stringify(newPhotos));
+
+        //delete photo file from filesystem
+        const fileName = photo.filePath.substr  (photo.filePath.lastIndexOf('/' )+1);
+        await deleteFile({
+            path: fileName,
+            directory: FilesystemDirectory.Data
+        });
+        setPhotos(newPhotos);       
+ 
+    };
+
     const takePhoto = async () => {
         const fileName = new Date().getTime + '.jpeg';
         const cameraPhoto = await getPhoto({
@@ -43,7 +76,7 @@ export function usePhotoGalery(){
               filePath: fileName,              
               webViewPath:cameraPhoto.webPath
             };
-          };
+          };    
           
 
 /*
@@ -54,11 +87,16 @@ export function usePhotoGalery(){
         const savedFileImage = await savePicture(cameraPhoto, fileName);
         const newPhotos = [savedFileImage, ...photos];
         setPhotos(newPhotos)
-        
+        set(PHOTO_STORAGE,  JSON.stringify(newPhotos.map(p =>{
+            const photoCopy = {...p};
+            delete photoCopy.base64;
+            return photoCopy;
+        })));
 
     };
 
     return {
+        deletePhoto,
         photos,
         takePhoto
     };
