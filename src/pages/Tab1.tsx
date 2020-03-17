@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonFab, IonIcon, IonFabButton } from '@ionic/react';
 import ExploreContainer from '../components/ExploreContainer';
 import './Tab1.css';
@@ -6,16 +6,22 @@ import {laptopOutline, terminal} from 'ionicons/icons';
 import {Plugins} from '@capacitor/core';
 
 
+
+
 const Tab1: React.FC = () => {
+
   const {CustumNativePlugins} = Plugins;
-  var mac2 = "";
+  const [mac, setMac] = useState("");
+
+  
   const getMacAddress = async () =>{
-    const  mac = await CustumNativePlugins.getMacAddress();
+    const  res = await CustumNativePlugins.getMacAddress();
+    console.log(res);
+    setMac(res.mac);
+    //setMac(res['mac']);
     
-   return "asda"; 
   };
-  
-  
+ 
   return (
     <IonPage>
       <IonHeader>
@@ -30,12 +36,12 @@ const Tab1: React.FC = () => {
 
           </IonToolbar>
         </IonHeader>
-        <ExploreContainer name =   "Hot reload"/>        
-        {getMacAddress()}
+        <ExploreContainer name ={mac} />        
+        
       </IonContent>
       <IonFab vertical = "bottom" horizontal = "center" slot = "fixed">
         <IonFabButton>          
-          <IonIcon onClick = {() => getMacAddress}
+          <IonIcon onClick = {() => getMacAddress()}
           
           icon = {laptopOutline}>
 
