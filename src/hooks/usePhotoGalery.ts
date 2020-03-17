@@ -13,6 +13,7 @@ export function usePhotoGalery(){
     const {getPhoto} = useCamera();
 
     const [photos, setPhotos] = useState<Photo[]>([]);
+    
     const {deleteFile, getUri, readFile, writeFile} = useFilesystem();
     const PHOTO_STORAGE = "Fotos";    
     const {get, set } = useStorage();
